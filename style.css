@@ -1,0 +1,103 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a; /* dark navy */
+  color: #f8fafc; /* light text */
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #f1f5f9;
+}
+
+section {
+  margin-bottom: 20px;
+}
+
+input, textarea, button, select {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+}
+
+input, textarea, select {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+button {
+  background: #facc15; /* yellow accent */
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #eab308;
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background: #334155;
+  margin: 20px 0;
+}
+
+.entry-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  color: #facc15;
+  margin-bottom: 8px;
+}
+
+.tags {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.actions {
+  margin-top: 10px;
+}
+
+.actions button {
+  background: #3b82f6;
+  color: white;
+  margin-right: 8px;
+  border-radius: 6px;
+}
+
+.actions button:hover {
+  background: #2563eb;
+}
+
+.search-filter {
+  display: flex;
+  gap: 10px;
+}
+
+.search-filter input {
+  flex: 1;
+}
