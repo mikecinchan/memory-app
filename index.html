@@ -5,43 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Memory App</title>
   <link rel="stylesheet" href="style.css" />
-  
-  <!-- ✅ Firebase v9 compat SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
 
-  <script src="script.js"></script>
+  <!-- ✅ Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Memory App</h1>
 
-    <!-- Add Entry Form -->
-    <section class="add-entry">
-      <h2>Add New Entry</h2>
-      <input type="text" id="title" placeholder="Title" />
-      <textarea id="content" placeholder="Content"></textarea>
-      <input type="text" id="category" placeholder="Category (create or reuse)" />
-      <input type="text" id="tags" placeholder="Tags (comma separated)" />
-      <button id="saveBtn">Save Entry</button>
+    <!-- ✅ Login Page -->
+    <section id="loginSection" style="display:none;">
+      <h2>Login</h2>
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+      <p id="loginError" style="color:red;"></p>
     </section>
 
-    <hr />
+    <!-- ✅ Main App Section -->
+    <section id="appSection" style="display:none;">
+      <h1>Memory App</h1>
 
-    <!-- Search + Date Filter -->
-    <section class="search-filter">
-      <input type="text" id="searchInput" placeholder="Search entries..." />
-      <input type="date" id="dateFilter" />
+      <!-- Add Entry Form -->
+      <section class="add-entry">
+        <h2>Add New Entry</h2>
+        <input type="text" id="title" placeholder="Title" />
+        <textarea id="content" placeholder="Content"></textarea>
+        <input type="text" id="category" placeholder="Category (create or reuse)" />
+        <input type="text" id="tags" placeholder="Tags (comma separated)" />
+        <button id="saveBtn">Save Entry</button>
+      </section>
+
+      <hr />
+
+      <!-- Search + Date Filter -->
+      <section class="search-filter">
+        <input type="text" id="searchInput" placeholder="Search entries..." />
+        <input type="date" id="dateFilter" />
+      </section>
+
+      <hr />
+
+      <!-- Entry List -->
+      <section class="entries">
+        <h2>Saved Entries</h2>
+        <div id="entriesList"></div>
+      </section>
+
+      <button id="logoutBtn">Logout</button>
     </section>
 
-    <hr />
-
-    <!-- Entry List -->
-    <section class="entries">
-      <h2>Saved Entries</h2>
-      <div id="entriesList"></div>
-    </section>
   </div>
 
+  <!-- ✅ Your app logic -->
+  <script src="script.js"></script>
 </body>
 </html>

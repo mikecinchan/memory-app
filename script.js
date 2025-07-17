@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ DOM fully loaded!");
 
-  // ✅ 1. Your Firebase Config
+  // ✅ Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyAm7dYQ7el_qmfj9ia8FlhK0J7KeCKfOx0",
     authDomain: "memory-app-a58bc.firebaseapp.com",
@@ -11,10 +11,20 @@ document.addEventListener("DOMContentLoaded", () => {
     appId: "1:576020902077:web:9749c05e5aa06100ad87d4"
   };
 
-  // ✅ 2. Init Firebase + Firestore
+  // ✅ Init Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   const entriesRef = db.collection("entries");
+  const auth = firebase.auth();
+
+  // ✅ UI Elements
+  const loginSection = document.getElementById("loginSection");
+  const appSection = document.getElementById("appSection");
+  const loginEmail = document.getElementById("loginEmail");
+  const loginPassword = document.getElementById("loginPassword");
+  const loginBtn = document.getElementById("loginBtn");
+  const loginError = document.getElementById("loginError");
+  const logoutBtn = document.getElementById("logoutBtn");
 
   const titleInput = document.getElementById("title");
   const contentInput = document.getElementById("content");
@@ -25,61 +35,90 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchInput");
   const dateFilter = document.getElementById("dateFilter");
 
-  // ✅ Global cache of all entries
-  let allEntries = [];
+  let allEntries = []; // Cache
 
-  // ✅ Save Entry to Firestore
-  saveBtn.addEventListener("click", async () => {
-    const title = titleInput.value.trim();
-    const content = contentInput.value.trim();
-    const category = categoryInput.value.trim();
-    const tags = tagsInput.value.trim().split(",").map(tag => tag.trim()).filter(Boolean);
+  // ✅ Auth State Listener
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      console.log("✅ Logged in:", user.email);
+      loginSection.style.display = "none";
+      appSection.style.display = "block";
 
-    if (!title) {
-      alert("Title is required!");
-      return;
+      // Load Firestore entries ONLY after login
+      loadEntries();
+    } else {
+      console.log("❌ Not logged in");
+      appSection.style.display = "none";
+      loginSection.style.display = "block";
     }
+  });
 
-    const newEntry = {
-      title,
-      content,
-      category,
-      tags,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  // ✅ Login
+  if (loginBtn) {
+    loginBtn.onclick = async () => {
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value.trim();
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        loginError.textContent = err.message;
+      }
     };
+  }
 
-    // ✅ Add to Firestore (onSnapshot will auto-refresh UI)
-    await entriesRef.add(newEntry);
+  // ✅ Logout
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      await auth.signOut();
+    };
+  }
 
-    // ✅ Clear the form fields
-    titleInput.value = "";
-    contentInput.value = "";
-    categoryInput.value = "";
-    tagsInput.value = "";
+  // ✅ Load Firestore entries after login
+  function loadEntries() {
+    entriesRef.orderBy("createdAt", "desc").onSnapshot(snapshot => {
+      const tempEntries = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.createdAt) {
+          tempEntries.push({ id: doc.id, ...data });
+        }
+      });
 
-    // ❌ Don't call renderEntries() here to avoid duplicate rendering
-  });
+      allEntries = tempEntries.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+      renderEntries(allEntries, searchInput.value, dateFilter.value);
+    });
+  }
 
-  // ✅ Listen to Firestore changes in real-time without duplicates
- entriesRef.orderBy("createdAt", "desc").onSnapshot(snapshot => {
-  const tempEntries = [];
+  // ✅ Save Entry
+  if (saveBtn) {
+    saveBtn.onclick = async () => {
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      const category = categoryInput.value.trim();
+      const tags = tagsInput.value.trim().split(",").map(tag => tag.trim()).filter(Boolean);
 
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    if (data.createdAt) { // only render once timestamp is ready
-      tempEntries.push({ id: doc.id, ...data });
-    }
-  });
+      if (!title) {
+        alert("Title is required!");
+        return;
+      }
 
-  // ✅ Always replace full list, no accumulation
-  allEntries = tempEntries.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+      const newEntry = {
+        title,
+        content,
+        category,
+        tags,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
 
-  // ✅ Single clean render
-  renderEntries(allEntries, searchInput.value, dateFilter.value);
-});
+      await entriesRef.add(newEntry);
 
-
-
+      titleInput.value = "";
+      contentInput.value = "";
+      categoryInput.value = "";
+      tagsInput.value = "";
+    };
+  }
 
   // ✅ Render function
   function renderEntries(entries, filter = "", date = "") {
@@ -135,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // ✅ Edit Entry (load into form, then delete old)
+  // ✅ Edit Entry
   window.editEntry = async function (id) {
     const doc = await entriesRef.doc(id).get();
     if (!doc.exists) return;
@@ -149,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await entriesRef.doc(id).delete(); // remove old version
   };
 
-  // ✅ Search & Date Filters (filter in-memory only)
+  // ✅ Search & Date Filters
   searchInput.addEventListener("input", () => {
     renderEntries(allEntries, searchInput.value, dateFilter.value);
   });
