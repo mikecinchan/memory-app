@@ -18,13 +18,11 @@ h1, h2 {
   color: #f1f5f9;
 }
 
-section {
-  margin-bottom: 20px;
-}
+section { margin-bottom: 24px; }
 
 input, textarea, button, select {
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   padding: 12px;
   font-size: 16px;
   border: none;
@@ -44,60 +42,77 @@ button {
   transition: 0.2s;
 }
 
-button:hover {
-  background: #eab308;
-}
+button:hover { background: #eab308; }
 
 hr {
   border: 0;
   height: 1px;
   background: #334155;
-  margin: 20px 0;
+  margin: 24px 0;
 }
+
+/* ---------- Entries ---------- */
+
+.entries #entriesList { display: grid; gap: 16px; }
 
 .entry-card {
   background: #1e293b;
   border: 1px solid #334155;
-  padding: 15px;
-  margin-bottom: 15px;
+  padding: 16px;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
+/* Title + Date row */
 .entry-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
+  flex-wrap: wrap;              /* allow wrapping on small screens */
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
   color: #facc15;
-  margin-bottom: 8px;
+  font-weight: 700;
 }
 
-.tags {
-  color: #94a3b8;
-  font-size: 14px;
+.entry-header strong {
+  flex: 1 1 auto;               /* title takes remaining space */
+  min-width: 200px;
 }
 
+.entry-header span {
+  white-space: nowrap;          /* keep date on one line */
+  color: #facc15;
+  font-weight: 700;
+}
+
+/* Main text: keep line breaks + wrap long URLs/words */
+.entry-card p {
+  margin: 10px 0;
+  line-height: 1.5;
+  white-space: pre-wrap;        /* preserve \n from textarea */
+  overflow-wrap: anywhere;      /* wrap very long words/URLs */
+  word-break: break-word;
+}
+
+.entry-card a { word-break: break-all; } /* extra safety if links are clickable */
+
+.tags { color: #94a3b8; font-size: 14px; }
+
+/* Action buttons */
 .actions {
-  margin-top: 10px;
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
 }
 
 .actions button {
   background: #3b82f6;
   color: white;
-  margin-right: 8px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
-.actions button:hover {
-  background: #2563eb;
-}
+.actions button:hover { background: #2563eb; }
 
-.search-filter {
-  display: flex;
-  gap: 10px;
-}
-
-.search-filter input {
-  flex: 1;
-}
+/* Search row */
+.search-filter { display: flex; gap: 10px; }
+.search-filter input { flex: 1; }
