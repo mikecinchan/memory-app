@@ -19,23 +19,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ✅ UI Elements
   const loginSection = document.getElementById("loginSection");
-  const appSection = document.getElementById("appSection");
-  const loginEmail = document.getElementById("loginEmail");
-  const loginPassword = document.getElementById("loginPassword");
-  const loginBtn = document.getElementById("loginBtn");
-  const loginError = document.getElementById("loginError");
-  const logoutBtn = document.getElementById("logoutBtn");
+  const appSection   = document.getElementById("appSection");
+  const loginEmail   = document.getElementById("loginEmail");
+  const loginPassword= document.getElementById("loginPassword");
+  const loginBtn     = document.getElementById("loginBtn");
+  const loginError   = document.getElementById("loginError");
+  const logoutBtn    = document.getElementById("logoutBtn");
 
-  const titleInput = document.getElementById("title");
+  const titleInput   = document.getElementById("title");
   const contentInput = document.getElementById("content");
-  const categoryInput = document.getElementById("category");
-  const tagsInput = document.getElementById("tags");
-  const saveBtn = document.getElementById("saveBtn");
-  const entriesList = document.getElementById("entriesList");
-  const searchInput = document.getElementById("searchInput");
-  const dateFilter = document.getElementById("dateFilter");
+  const categoryInput= document.getElementById("category");
+  const tagsInput    = document.getElementById("tags");
+  const saveBtn      = document.getElementById("saveBtn");
+  const entriesList  = document.getElementById("entriesList");
+  const searchInput  = document.getElementById("searchInput");
+  const dateFilter   = document.getElementById("dateFilter");
 
-  let allEntries = []; // Cache
+  let allEntries = [];     // Cache
+  let editingId = null;    // <-- track which doc is being edited (null = create mode)
+
+  // Helper: reset form + UI state
+  function clearForm() {
+    titleInput.value = "";
+    contentInput.value = "";
+    categoryInput.value = "";
+    tagsInput.value = "";
+    editingId = null;
+    if (saveBtn) saveBtn.textContent = "Save Entry";
+  }
 
   // ✅ Auth State Listener
   auth.onAuthStateChanged(user => {
@@ -43,9 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("✅ Logged in:", user.email);
       loginSection.style.display = "none";
       appSection.style.display = "block";
-
-      // Load Firestore entries ONLY after login
-      loadEntries();
+      loadEntries(); // Load Firestore entries ONLY after login
     } else {
       console.log("❌ Not logged in");
       appSection.style.display = "none";
@@ -58,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loginBtn.onclick = async () => {
       const email = loginEmail.value.trim();
       const password = loginPassword.value.trim();
-
       try {
         await auth.signInWithEmailAndPassword(email, password);
       } catch (err) {
@@ -84,39 +92,39 @@ document.addEventListener("DOMContentLoaded", () => {
           tempEntries.push({ id: doc.id, ...data });
         }
       });
-
       allEntries = tempEntries.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
       renderEntries(allEntries, searchInput.value, dateFilter.value);
     });
   }
 
-  // ✅ Save Entry
+  // ✅ Create or Update Entry
   if (saveBtn) {
     saveBtn.onclick = async () => {
-      const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
+      const title    = titleInput.value.trim();
+      const content  = contentInput.value.trim();
       const category = categoryInput.value.trim();
-      const tags = tagsInput.value.trim().split(",").map(tag => tag.trim()).filter(Boolean);
+      const tags     = tagsInput.value.trim().split(",").map(t => t.trim()).filter(Boolean);
 
       if (!title) {
         alert("Title is required!");
         return;
       }
 
-      const newEntry = {
-        title,
-        content,
-        category,
-        tags,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
+      if (editingId) {
+        // 🔄 Update existing doc (keep createdAt, add updatedAt)
+        await entriesRef.doc(editingId).update({
+          title, content, category, tags,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        // ✨ Create new doc
+        await entriesRef.add({
+          title, content, category, tags,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
 
-      await entriesRef.add(newEntry);
-
-      titleInput.value = "";
-      contentInput.value = "";
-      categoryInput.value = "";
-      tagsInput.value = "";
+      clearForm(); // exit edit mode
     };
   }
 
@@ -171,21 +179,25 @@ document.addEventListener("DOMContentLoaded", () => {
   window.deleteEntry = async function (id) {
     if (confirm("Delete this entry?")) {
       await entriesRef.doc(id).delete();
+      if (editingId === id) clearForm(); // if you deleted the one you're editing, exit edit mode
     }
   };
 
-  // ✅ Edit Entry
+  // ✅ Edit Entry (NO delete here anymore)
   window.editEntry = async function (id) {
     const doc = await entriesRef.doc(id).get();
     if (!doc.exists) return;
 
     const entry = doc.data();
-    titleInput.value = entry.title;
-    contentInput.value = entry.content;
-    categoryInput.value = entry.category;
-    tagsInput.value = (entry.tags || []).join(", ");
+    titleInput.value    = entry.title || "";
+    contentInput.value  = entry.content || "";
+    categoryInput.value = entry.category || "";
+    tagsInput.value     = (entry.tags || []).join(", ");
 
-    await entriesRef.doc(id).delete(); // remove old version
+    editingId = id;                 // mark we're editing this doc
+    saveBtn.textContent = "Save Changes";
+    // Optional: scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ✅ Search & Date Filters
